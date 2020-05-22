@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -28,6 +29,8 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private QuestionBank mQuestionBank;
     private Question mCurrentQuestion;
 
+    private static final String TAG = "GameActivity";
+
     private int mScore;
     private int mNumberOfQuestions;
 
@@ -38,6 +41,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
+        Log.i(TAG, "on create : "+getPreferences(MODE_PRIVATE).getString(MainActivity.PREF_KEY_FIRSTNAME, null));
         mQuestionBank = this.generateQuestions();
 
         mScore = 0;
