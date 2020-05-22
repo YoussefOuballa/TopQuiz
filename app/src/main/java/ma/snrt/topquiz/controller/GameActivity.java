@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -13,6 +14,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.gson.Gson;
 
 import java.util.Arrays;
 
@@ -31,12 +34,15 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private QuestionBank mQuestionBank;
     private Question mCurrentQuestion;
 
-    private static final String TAG = "GameActivity";
+   private static final String TAG = "GameActivity";
 
     private int mScore;
     private int mNumberOfQuestions;
 
     public static final String BUNDLE_EXTRA_SCORE = "BUNDLE_EXTRA_SCORE";
+    public static final String BUNDLE_STATE_SCORE = "currentScore";
+    public static final String BUNDLE_STATE_QUESTION = "currentQuestion";
+    public static final String BUNDLE_STATE_QUESTION_BANK = "currentQuestionBank";
 
     private boolean mEnableTouchEvents;
 
@@ -45,11 +51,24 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
-        Log.i(TAG, "on create : "+getPreferences(MODE_PRIVATE).getString(MainActivity.PREF_KEY_FIRSTNAME, null));
-        mQuestionBank = this.generateQuestions();
+        if (savedInstanceState != null) {
+            mScore = savedInstanceState.getInt(BUNDLE_STATE_SCORE);
+            mNumberOfQuestions = savedInstanceState.getInt(BUNDLE_STATE_QUESTION);
 
-        mScore = 0;
-        mNumberOfQuestions = 4;
+            Log.i(TAG, "Score : "+mScore);
+            Log.i(TAG, "NumberOfQuestions : "+mNumberOfQuestions);
+
+            String jsonQuestionBank= savedInstanceState.getString(BUNDLE_STATE_QUESTION_BANK);
+            if(!jsonQuestionBank.isEmpty()) {
+                Gson gson = new Gson();
+                mQuestionBank = gson.fromJson(jsonQuestionBank, QuestionBank.class);
+            }
+        } else {
+            mQuestionBank = this.generateQuestions();
+            mScore = 0;
+            mNumberOfQuestions = 4;
+        }
+
         mEnableTouchEvents = true;
 
         mQuestionTxt = findViewById(R.id.activity_game_question_txt);
@@ -74,6 +93,18 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState){
+        outState.putInt(BUNDLE_STATE_SCORE, mScore);
+        outState.putInt(BUNDLE_STATE_QUESTION, mNumberOfQuestions);
+
+        Gson gson = new Gson();
+        String jsonQuestionBank = gson.toJson(mQuestionBank);
+        outState.putString(BUNDLE_STATE_QUESTION_BANK, jsonQuestionBank);
+
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
     public void onClick(View v){
         int responseIndex = (int) v.getTag();
         mEnableTouchEvents = false;
@@ -90,7 +121,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void run(){
                 mEnableTouchEvents = true;
-                if(--mNumberOfQuestions == 0) {
+                if(--mNumberOfQuestions <= 0) {
                     // End of the game
                     endGame();
                 }else {
@@ -181,6 +212,4 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             )
         );
     }
-
-
 }
