@@ -1,5 +1,6 @@
 package ma.snrt.topquiz.controller;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -21,6 +22,8 @@ public class MainActivity extends AppCompatActivity {
     private Button mPlayButton;
 
     private User mUser;
+
+    private static final int GAME_ACTIVITY_REQUEST_CODE = 42;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -58,8 +61,19 @@ public class MainActivity extends AppCompatActivity {
                 mUser.setFirstName(mNameInput.getText().toString());
 
                 Intent gameActivityIntent = new Intent(MainActivity.this, GameActivity.class);
-                startActivity(gameActivityIntent);
+                startActivityForResult(gameActivityIntent, GAME_ACTIVITY_REQUEST_CODE);
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data){
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == GAME_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK){
+            int score = data.getIntExtra(GameActivity.BUNDLE_EXTRA_SCORE, 0);
+
+            mUser.setScore(score);
+        }
     }
 }
